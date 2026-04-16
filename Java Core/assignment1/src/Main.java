@@ -31,5 +31,6 @@ public class Main {
         }
         System.out.println("IsPassCourse: " + account1.isPassCourse);
 
+        System.out.println("Đã in xong thông tin account trên!");
     }
 }
