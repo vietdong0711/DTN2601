@@ -2,6 +2,7 @@ package backend;
 
 import entity.Position;
 import enums.PositionName;
+import utils.JDBCUtils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -12,18 +13,10 @@ import java.util.List;
 
 public class QLPosition {
     // lấy ds các chuc vu trong DB và in ra
-    public static void showPosition() throws ClassNotFoundException{
-        String url = "jdbc:mysql://localhost:3306/dtn2601_testing_system";
-        String username = "root";
-        String password = "root";// mk mysql
-
+    public static void showPosition() throws ClassNotFoundException {
         try {
             // b1: kết nối đến DB
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            Connection connection = DriverManager.getConnection(url, username, password);
-            if (connection != null) {
-                System.out.println("Kết nối DB thành công");
-            }
+            Connection connection = JDBCUtils.getConnection();
             // b2: lấy dữ liệu từ bảng position
             String sql = "select * from position;";
             Statement statement = connection.createStatement();
@@ -33,6 +26,7 @@ public class QLPosition {
                 int id = rs.getInt("position_id");// lấy giá trị từ column position_id
                 String name = rs.getString("position_name");//lấy giá trị từ column position_name
                 PositionName positionName = PositionName.valueOf(name);
+
                 Position po = new Position(id, positionName);
                 positions.add(po);
             }
