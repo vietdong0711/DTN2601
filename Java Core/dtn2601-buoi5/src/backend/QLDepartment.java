@@ -4,6 +4,7 @@ package backend;
 import entity.Department;
 import utils.JDBCUtils;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -14,7 +15,7 @@ import java.util.List;
 public class QLDepartment {
 
     // lấy ds các phòng ban trong DB và in ra
-    public static void showDepartment() throws ClassNotFoundException{
+    public static List<Department> showDepartment() throws ClassNotFoundException{
         try {
             // b1: kết nối đến DB
             Connection connection = JDBCUtils.getConnection();
@@ -30,17 +31,12 @@ public class QLDepartment {
                 Department dep = new Department(id, name);
                 departments.add(dep);
             }
-            System.out.println("+-----+--------------------+");
-            System.out.printf("|%5s|%20s|\n", "ID", "Tên phòng ban");
-            System.out.println("+-----+--------------------+");
-            for (Department department : departments) {
-                System.out.printf("|%5s|%20s|\n", department.getId(), department.getName());
-            }
-            System.out.println("+-----+--------------------+");
+            return departments;
 
         } catch (Exception e) {// show các lỗi lien quan đén logic xử lý
             e.printStackTrace();// show ra exception
         }
+        return new ArrayList<>();
     }
 
     // lấy ra ds các phòng ban theo departmentID và departmentName
@@ -85,9 +81,33 @@ public class QLDepartment {
             // b2: tiến hành thêm mới department
             String sql = "insert into department (department_name) values (?);";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1, newName);
+            preparedStatement.setString(1, "Phong ban " + newName);
 
             int c = preparedStatement.executeUpdate();// executeUpdate sẽ trả về 1 số nguyên, đại diện cho số dòng bị thay đổi trong DB
+            if (c > 0) {
+                return true;
+            }  else {
+                return false;
+            }
+        } catch (Exception e) {// show các lỗi lien quan đén logic xử lý
+            e.printStackTrace();// show ra exception
+        }
+        return false;
+    }
+
+
+    // procedure
+    // CallableStatement dùng để call procedure
+    public static boolean insertDepartmentProcedure(String newName) {
+        try {
+            // b1: kết nối đến DB
+            Connection connection = JDBCUtils.getConnection();
+            // b2: tiến hành thêm mới department bằng  Procedure insert_department()
+            String sql = "{CALL insert_department(?)}";
+            CallableStatement callableStatement = connection.prepareCall(sql);
+            callableStatement.setString(1, newName);
+
+            int c = callableStatement.executeUpdate();// executeUpdate sẽ trả về 1 số nguyên, đại diện cho số dòng bị thay đổi trong DB
             if (c > 0) {
                 return true;
             }  else {
@@ -147,4 +167,10 @@ public class QLDepartment {
     }
 
     // CRUD department      (CREATE     READ        UPDATE      DELETE)  department
+
+
+    // ko dc dừng chương trình mà hãy suwar logic thêm mới cho tôi
+    // VD: dev -> trong DB phai lưu là 'phòng ban dev'
+    // VD: test -> trong DB phai lưu là 'phòng ban test'
+
 }
