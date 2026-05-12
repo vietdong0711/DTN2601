@@ -10,8 +10,7 @@ import java.util.Scanner;
 public class DepartmentFunction {// đây là class chứa toàn bộ các method liên quan department
     private static Scanner sc = new Scanner(System.in);
 
-
-    public static void run() throws ClassNotFoundException {
+    public static void run() {
         List<Department> departments = new ArrayList<>();
         while (true) {
             System.out.println("=== Mời bạn chọn chức năng ===");
@@ -20,7 +19,8 @@ public class DepartmentFunction {// đây là class chứa toàn bộ các metho
             System.out.println("3. Xóa department theo tên");
             System.out.println("4. Update department theo ID");
             System.out.println("5. Tìm kiếm department theo ID và tên phòng ban");
-            System.out.println("6. Thoát");
+            System.out.println("6. Ds phòng ban có nhiều nhân viên nhất");
+            System.out.println("8. Thoát");
             String choice = sc.nextLine();
             switch (choice) {
                 case "1":
@@ -40,6 +40,12 @@ public class DepartmentFunction {// đây là class chứa toàn bộ các metho
                     findByIdAndName();
                     break;
                 case "6":
+                    findDepartmentTheMostEmployee();
+                    break;
+                case "7":
+
+                    break;
+                case "8":
                     return;
                 default:
                     System.out.println("Nhập sai, nhập lại.");
@@ -47,7 +53,12 @@ public class DepartmentFunction {// đây là class chứa toàn bộ các metho
         }
     }
 
-    public static void findByIdAndName() throws ClassNotFoundException {
+    public static void findDepartmentTheMostEmployee() {
+        List<Department> departments = QLDepartment.findDepartmentTheMostEmployee();
+        showDepartment(departments);
+    }
+
+    public static void findByIdAndName() {
         System.out.println("Nhập tên ID phòng ban cần tìm: ");
         int id = sc.nextInt();
         sc.nextLine();

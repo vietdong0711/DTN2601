@@ -2,6 +2,8 @@ package backend;
 
 
 import entity.Department;
+import entity.Position;
+import enums.PositionName;
 import utils.JDBCUtils;
 
 import java.sql.CallableStatement;
@@ -15,7 +17,7 @@ import java.util.List;
 public class QLDepartment {
 
     // lấy ds các phòng ban trong DB và in ra
-    public static List<Department> showDepartment() throws ClassNotFoundException{
+    public static List<Department> showDepartment() {
         try {
             // b1: kết nối đến DB
             Connection connection = JDBCUtils.getConnection();
@@ -43,7 +45,7 @@ public class QLDepartment {
     // đưa vào departmentID = 1 và departmentName= Marketing, tìm các phòng ban có thông tin như trên
     // "select * from department where department_id = 1 and department_name like 'Marketing';"
     // "select * from department where department_id = 1 or department_name like 'Marketing';"
-    public static List<Department> findByDepartmentIdAndName(int searchId, String searchName) throws ClassNotFoundException{
+    public static List<Department> findByDepartmentIdAndName(int searchId, String searchName) {
         List<Department> departments = new ArrayList<>();// lưu lại dữ liệu lấy từ DB
         try {
             // b1: kết nối đến DB
@@ -86,7 +88,7 @@ public class QLDepartment {
             int c = preparedStatement.executeUpdate();// executeUpdate sẽ trả về 1 số nguyên, đại diện cho số dòng bị thay đổi trong DB
             if (c > 0) {
                 return true;
-            }  else {
+            } else {
                 return false;
             }
         } catch (Exception e) {// show các lỗi lien quan đén logic xử lý
@@ -110,7 +112,7 @@ public class QLDepartment {
             int c = callableStatement.executeUpdate();// executeUpdate sẽ trả về 1 số nguyên, đại diện cho số dòng bị thay đổi trong DB
             if (c > 0) {
                 return true;
-            }  else {
+            } else {
                 return false;
             }
         } catch (Exception e) {// show các lỗi lien quan đén logic xử lý
@@ -132,7 +134,7 @@ public class QLDepartment {
             int c = preparedStatement.executeUpdate();// executeUpdate sẽ trả về 1 số nguyên, đại diện cho số dòng bị thay đổi trong DB
             if (c > 0) {
                 return true;
-            }  else {
+            } else {
                 return false;
             }
         } catch (Exception e) {// show các lỗi lien quan đén logic xử lý
@@ -157,7 +159,7 @@ public class QLDepartment {
             int c = preparedStatement.executeUpdate();// executeUpdate sẽ trả về 1 số nguyên, đại diện cho số dòng bị thay đổi trong DB
             if (c > 0) {
                 return true;
-            }  else {
+            } else {
                 return false;
             }
         } catch (Exception e) {// show các lỗi lien quan đén logic xử lý
@@ -172,5 +174,36 @@ public class QLDepartment {
     // ko dc dừng chương trình mà hãy suwar logic thêm mới cho tôi
     // VD: dev -> trong DB phai lưu là 'phòng ban dev'
     // VD: test -> trong DB phai lưu là 'phòng ban test'
+
+    public static List<Department> findDepartmentTheMostEmployee() {
+        List<Department> departments = new ArrayList<>();// lưu lại dữ liệu lấy từ DB
+        try {
+            // b1: kết nối đến DB
+            Connection connection = JDBCUtils.getConnection();
+            // b2: lấy dữ liệu từ bảng department
+            String sql = "select po.*\n" +
+                    "from position po\n" +
+                    "         join account acc on po.position_id = acc.position_id\n" +
+                    "group by po.position_id\n" +
+                    "having count(po.position_id) = (select count(po.position_id)\n" +
+                    "                                  from account\n" +
+                    "                                  group by po.position_id\n" +
+                    "                                  order by count(po.position_id) desc\n" +
+                    "                                  limit 1);";
+            PreparedStatement prepareStatement = connection.prepareStatement(sql);
+            ResultSet rs = prepareStatement.executeQuery();// thực thi câu lệnh sql và gán bảng trả ra vào ResultSet rs
+
+            while (rs.next()) {// lặp qua qua từng dòng của rs
+                int id = rs.getInt("department_id");// lấy giá trị từ column department_id
+                String name = rs.getString("department_name");//lấy giá trị từ column department_name
+
+                Department de = new Department(id, name);
+                departments.add(de);
+            }
+        } catch (Exception e) {// show các lỗi lien quan đén logic xử lý
+            e.printStackTrace();// show ra exception
+        }
+        return departments;
+    }
 
 }
