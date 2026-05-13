@@ -1,7 +1,9 @@
-package utils;
+package org.example.utils;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.Statement;
 
 public class JDBCUtils {
 
@@ -22,5 +24,21 @@ public class JDBCUtils {
             System.out.println("Kết nối DB ko thành công");
         }
         return connection;
+    }
+
+    public static void close(Connection connection, Statement statement, ResultSet rs) {
+        try {
+            if (connection != null) {
+                connection.close();
+            }
+            if (statement != null) {
+                statement.close();
+            }
+            if (rs != null) {
+                rs.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -181,15 +181,47 @@ public class QLDepartment {
             // b1: kết nối đến DB
             Connection connection = JDBCUtils.getConnection();
             // b2: lấy dữ liệu từ bảng department
-            String sql = "select po.*\n" +
-                    "from position po\n" +
-                    "         join account acc on po.position_id = acc.position_id\n" +
-                    "group by po.position_id\n" +
-                    "having count(po.position_id) = (select count(po.position_id)\n" +
-                    "                                  from account\n" +
-                    "                                  group by po.position_id\n" +
-                    "                                  order by count(po.position_id) desc\n" +
-                    "                                  limit 1);";
+            String sql = "select de.*\n" +
+                    "from department de\n" +
+                    "join account acc on de.department_id = acc.department_id\n" +
+                    "group by de.department_id\n" +
+                    "having count(de.department_id) = (select count(department_id)\n" +
+                    "       from account\n" +
+                    "       group by department_id\n" +
+                    "       order by count(department_id) desc\n" +
+                    "       limit 1);";
+            PreparedStatement prepareStatement = connection.prepareStatement(sql);
+            ResultSet rs = prepareStatement.executeQuery();// thực thi câu lệnh sql và gán bảng trả ra vào ResultSet rs
+
+            while (rs.next()) {// lặp qua qua từng dòng của rs
+                int id = rs.getInt("department_id");// lấy giá trị từ column department_id
+                String name = rs.getString("department_name");//lấy giá trị từ column department_name
+
+                Department de = new Department(id, name);
+                departments.add(de);
+            }
+        } catch (Exception e) {// show các lỗi lien quan đén logic xử lý
+            e.printStackTrace();// show ra exception
+        }
+        return departments;
+    }
+
+    public static List<Department> findDepartmentTheLeastEmployee() {
+        List<Department> departments = new ArrayList<>();// lưu lại dữ liệu lấy từ DB
+        try {
+            // b1: kết nối đến DB
+            Connection connection = JDBCUtils.getConnection();
+            // b2: lấy dữ liệu từ bảng department
+            String sql = "select  de.*, count(acc.department_id)\n" +
+                    "from department de\n" +
+                    "left join account acc on de.department_id = acc.department_id\n" +
+                    "group by de.department_id\n" +
+                    "having count(acc.department_id) = (select count(acc.department_id) -- tifm min\n" +
+                    "                   from account acc\n" +
+                    "                   right join department de on acc.department_id = de.department_id\n" +
+                    "                   group by de.department_id\n" +
+                    "                   order by count(acc.department_id) asc\n" +
+                    "                   limit 1);";
             PreparedStatement prepareStatement = connection.prepareStatement(sql);
             ResultSet rs = prepareStatement.executeQuery();// thực thi câu lệnh sql và gán bảng trả ra vào ResultSet rs
 

@@ -141,7 +141,7 @@ public class QLPosition {
                     "                                  from account\n" +
                     "                                  group by department_id\n" +
                     "                                  order by count(department_id) desc\n" +
-                    "                                  limit 1);;";
+                    "                                  limit 1);";
             PreparedStatement prepareStatement = connection.prepareStatement(sql);
             ResultSet rs = prepareStatement.executeQuery();// thực thi câu lệnh sql và gán bảng trả ra vào ResultSet rs
 

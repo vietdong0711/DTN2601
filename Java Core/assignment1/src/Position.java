@@ -1,4 +1,4 @@
-package PACKAGE_NAME;
-
 public class Position {
+    int positionId;
+    PositionName positionName;// enum
 }

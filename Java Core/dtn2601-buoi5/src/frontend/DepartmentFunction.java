@@ -20,6 +20,7 @@ public class DepartmentFunction {// đây là class chứa toàn bộ các metho
             System.out.println("4. Update department theo ID");
             System.out.println("5. Tìm kiếm department theo ID và tên phòng ban");
             System.out.println("6. Ds phòng ban có nhiều nhân viên nhất");
+            System.out.println("7. Ds phòng ban có it nhân viên nhất");
             System.out.println("8. Thoát");
             String choice = sc.nextLine();
             switch (choice) {
@@ -43,7 +44,8 @@ public class DepartmentFunction {// đây là class chứa toàn bộ các metho
                     findDepartmentTheMostEmployee();
                     break;
                 case "7":
-
+                    departments = QLDepartment.findDepartmentTheLeastEmployee();
+                    showDepartment(departments);
                     break;
                 case "8":
                     return;
