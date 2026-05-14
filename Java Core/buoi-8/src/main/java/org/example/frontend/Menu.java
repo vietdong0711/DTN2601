@@ -16,6 +16,12 @@ public class Menu {
                 case "1":
                     DepartmentFunction departmentFunction = new DepartmentFunction();
                     departmentFunction.run();
+                case "2":
+                    PositionFunction positionFunction = new PositionFunction();
+                    positionFunction.run();
+                case "3":
+                    AccountFunction accountFunction = new AccountFunction();
+                    accountFunction.run();
                 default:
                     System.out.println("Mời chọn lại");
             }

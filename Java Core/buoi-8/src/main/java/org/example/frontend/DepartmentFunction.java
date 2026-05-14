@@ -28,24 +28,14 @@ public class DepartmentFunction {
                     this.showDepartment(departments);
                     break;
                 case "2":
-                    insertDepartment();
+                    this.insertDepartment();
                     break;
                 case "3":
-                    deleteDepartment();
+                    this.deleteDepartment();
                     break;
                 case "4":
-                    updateDepartment();
+                    this.updateDepartment();
                     break;
-//                case "5":
-//                    findByIdAndName();
-//                    break;
-//                case "6":
-//                    findDepartmentTheMostEmployee();
-//                    break;
-//                case "7":
-//                    departments = QLDepartment.findDepartmentTheLeastEmployee();
-//                    showDepartment(departments);
-//                    break;
                 case "8":
                     return;
                 default:
