@@ -5,6 +5,7 @@ import org.example.backend.service.impl.AccountServiceImpl;
 import org.example.entity.Account;
 
 import java.util.List;
+import java.util.Map;
 
 public class AccountController {
     // khoi tao accountService
@@ -25,5 +26,9 @@ public class AccountController {
 
     public boolean delete(int id) {
         return accountService.delete(id);
+    }
+
+    public Map<String, Account> mapAccountByUsername() {
+        return accountService.mapAccountByUsername();
     }
 }

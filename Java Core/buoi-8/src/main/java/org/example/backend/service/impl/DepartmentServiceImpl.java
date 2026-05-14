@@ -31,4 +31,9 @@ public class DepartmentServiceImpl implements IDepartmentService {
     public boolean delete(int id) {
         return departmentRepository.delete(id);
     }
+
+    @Override
+    public boolean checkExistName(String name, Integer id) {
+        return departmentRepository.checkExistName(name, id);
+    }
 }

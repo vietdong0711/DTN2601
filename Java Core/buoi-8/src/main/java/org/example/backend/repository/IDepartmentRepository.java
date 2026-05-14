@@ -9,4 +9,5 @@ public interface IDepartmentRepository {
     boolean create(String name);
     boolean update(int id, String name);
     boolean delete(int id);
+    boolean checkExistName(String name, Integer id);
 }

@@ -5,6 +5,7 @@ import org.example.backend.service.IAccountService;
 import org.example.entity.Account;
 
 import java.util.List;
+import java.util.Map;
 
 public class AccountServiceImpl implements IAccountService {
     // khoi tao accountRepository
@@ -29,5 +30,10 @@ public class AccountServiceImpl implements IAccountService {
     @Override
     public boolean delete(int id) {
         return accountRepository.delete(id);
+    }
+
+    @Override
+    public Map<String, Account> mapAccountByUsername() {
+        return accountRepository.mapAccountByUsername();
     }
 }

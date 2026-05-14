@@ -25,4 +25,8 @@ public class DepartmentController {
     public boolean delete(int id) {
         return departmentService.delete(id);
     }
+
+    public boolean checkExistName(String name, Integer id) {
+        return departmentService.checkExistName(name, id);
+    }
 }

@@ -11,9 +11,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 public class AccountRepositoryImpl implements IAccountRepository {
     @Override
@@ -82,7 +80,8 @@ public class AccountRepositoryImpl implements IAccountRepository {
             // b1: kết nối đến DB
             Connection connection = JDBCUtils.getConnection();
             // b2: tiến hành update account
-            String sql = "update account set full_name = ?, email = ?, username = ?, department_id = ?, position_id = ? where account_id = ?;";
+            String sql = "update account set full_name = ?, email = ?, username = ?, department_id = ?, position_id = ? " +
+                    "where account_id = ?;";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, updateName);
             preparedStatement.setString(2, email);
@@ -115,5 +114,43 @@ public class AccountRepositoryImpl implements IAccountRepository {
             e.printStackTrace();// show ra exception
         }
         return false;
+    }
+
+    @Override
+    public Map<String, Account> mapAccountByUsername() {
+        Map<String, Account> mapAccountByUsername = new HashMap<>();
+        try {
+            // b1: kết nối đến DB
+            Connection connection = JDBCUtils.getConnection();
+            // b2: lấy dữ liệu từ bảng account
+            String sql = "select acc.*, de.department_name, po.position_name \n" +
+                    "from account acc\n" +
+                    "left join department de on acc.department_id = de.department_id\n" +
+                    "left join position po on acc.position_id = po.position_id;";
+            Statement statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(sql);// thực thi câu lệnh sql và gán bảng trả ra vào ResultSet rs
+            while (rs.next()) {// lặp qua qua từng dòng của rs
+                Integer id = rs.getInt("account_id");// lấy giá trị từ cloumn account_id
+                String email = rs.getString("email");//lấy giá trị từ cloumn account_name
+                String userName = rs.getString("username");
+                String fullName = rs.getString("full_name");
+                Integer departmentID = rs.getInt("department_id");
+                String departmentName = rs.getString("department_name");
+                Integer positionID = rs.getInt("position_id");
+                String positionName = rs.getString("position_name");
+                Date createDate = rs.getDate("create_date");
+
+                Department department = new Department(departmentID, departmentName);
+                Position position = new Position(positionID, PositionName.valueOf(positionName));
+
+                Account account = new Account(id, userName, fullName, email, department, position, createDate);
+
+                mapAccountByUsername.put(userName, account);
+            }
+        } catch (Exception e) {
+            System.out.println("Kết nối DB ko thành công");
+            e.printStackTrace();
+        }
+        return mapAccountByUsername;
     }
 }

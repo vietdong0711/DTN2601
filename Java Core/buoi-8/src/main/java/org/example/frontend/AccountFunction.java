@@ -9,6 +9,7 @@ import org.example.entity.Position;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 
 public class AccountFunction {
@@ -26,6 +27,7 @@ public class AccountFunction {
             System.out.println("2. Thêm mới account");
             System.out.println("3. Xóa account theo tên");
             System.out.println("4. Update account theo ID");
+            System.out.println("5. Map account by username");
             System.out.println("6. Thoát");
             String choice = sc.nextLine();
             switch (choice) {
@@ -41,6 +43,11 @@ public class AccountFunction {
                     break;
                 case "4":
                     updateAccount();
+                    break;
+                case "5":
+                    Map<String, Account> map = accountController.mapAccountByUsername();
+                    Account acc = map.get("dong");
+                    
                     break;
                 case "6":
                     return;

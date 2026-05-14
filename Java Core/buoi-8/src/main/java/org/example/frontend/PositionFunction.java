@@ -127,3 +127,14 @@ public class PositionFunction {
         }
     }
 }
+
+//auto_increment   id tu tang
+//  1   2   3   4
+// xoa 4 di
+// insert theem 1 row nua
+//  1   2   3   5
+
+
+// 1    2   3   4
+// xoa 3
+// them moi
