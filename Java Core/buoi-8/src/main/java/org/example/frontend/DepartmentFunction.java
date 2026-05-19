@@ -2,6 +2,7 @@ package org.example.frontend;
 
 import org.example.backend.controller.DepartmentController;
 import org.example.entity.Department;
+import org.example.utils.ScannerUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,12 +65,7 @@ public class DepartmentFunction {
         while (true) {
             boolean check = true;
             System.out.println("Nhập tên phòng ban: ");
-            name = sc.nextLine();
-            // kiem tra tinh dung dan cua ten phong ban
-            if (Objects.isNull(name) || name.trim().isEmpty()) {//name.isEmpty() check xem đọ dài = 0
-                System.out.println("Ko đc để trống. Nhạp lại tên");
-                check = false;
-            }
+            name = ScannerUtils.inputString();
             if (departmentController.checkExistName(name, null)) {// kiem tra xem ten da ton tai chua
                 System.out.println("Tên này đã tồn tại. Nhạp lại tên khác");
                 check = false;
@@ -88,7 +84,7 @@ public class DepartmentFunction {
 
     public void deleteDepartment() {
         System.out.println("Nhập ID phòng ban cần xóa: ");
-        int id = sc.nextInt();
+        int id = ScannerUtils.inputID();
         sc.nextLine();
         boolean check = departmentController.delete(id);
         if (check) {
@@ -99,21 +95,26 @@ public class DepartmentFunction {
     }
 
     public void updateDepartment() {
-        System.out.println("Nhập tên ID phòng ban cần sửa: ");
-        int id = sc.nextInt();
-        sc.nextLine();
+        int id = 0;
         // bắt validation cho id
-
-        String name;
+        System.out.println("Nhập tên ID phòng ban cần sửa: ");
         while (true) {
             boolean check = true;
-            System.out.println("Nhập tên phòng ban muốn thay đổi: ");
-            name = sc.nextLine();
-            // kiem tra tinh dung dan cua ten phong ban
-            if (Objects.isNull(name) || name.trim().isEmpty()) {//name.isEmpty() check xem đọ dài = 0
-                System.out.println("Ko đc để trống. Nhạp lại tên");
+            id = ScannerUtils.inputID();
+            if (!departmentController.checkExistId(id)) {
+                System.out.println("ID này đã tồn tại. Nhạp lại ID khác");
                 check = false;
             }
+            if (check) {
+                break;
+            }
+        }
+
+        String name;
+        System.out.println("Nhập tên phòng ban muốn thay đổi: ");
+        while (true) {
+            boolean check = true;
+            name = ScannerUtils.inputString();
             if (departmentController.checkExistName(name, id)) {// kiem tra xem ten da ton tai chua
                 System.out.println("Tên này đã tồn tại. Nhạp lại tên khác");
                 check = false;

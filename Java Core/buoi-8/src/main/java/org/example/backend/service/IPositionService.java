@@ -10,4 +10,6 @@ public interface IPositionService {
     boolean create(PositionName name);
     boolean update(int id, PositionName name);
     boolean delete(int id);
+    boolean checkExist(Integer id, PositionName name);
+    boolean checkExistID(Integer id);
 }

@@ -29,4 +29,8 @@ public class DepartmentController {
     public boolean checkExistName(String name, Integer id) {
         return departmentService.checkExistName(name, id);
     }
+
+    public boolean checkExistId(Integer id) {
+        return departmentService.checkExistId(id);
+    }
 }

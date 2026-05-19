@@ -15,4 +15,10 @@ public interface IAccountRepository {
     boolean delete(int id);
 
     Map<String, Account> mapAccountByUsername();
+
+    boolean checkUsernameAndIdNot(String username, Integer id);
+    boolean checkEmail(String email);
+    boolean checkId(Integer id);
+
+    boolean update(Integer id, String username);
 }

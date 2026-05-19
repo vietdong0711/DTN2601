@@ -6,6 +6,7 @@ import org.example.backend.controller.PositionController;
 import org.example.entity.Account;
 import org.example.entity.Department;
 import org.example.entity.Position;
+import org.example.utils.ScannerUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -72,11 +73,27 @@ public class AccountFunction {
 
     public void insertAccount() {
         System.out.println("Nhập email: ");
-        String email = sc.nextLine();
+        String email = "";
+        while (true) {
+            email = ScannerUtils.inputEmail();
+            if (!accountController.checkEmail(email)) {
+                System.out.println("Email này đã được sử dụng. Nhập lại:");
+                continue;
+            }
+            break;
+        }
         System.out.println("Nhập username: ");
-        String username = sc.nextLine();
+        String username = "";
+        while (true) {
+            username = ScannerUtils.inputString();
+            if (accountController.checkUsernameAndIdNot(username, null)) {
+                System.out.println("Username này đã được dùng. Nhập lại:");
+                continue;
+            }
+            break;
+        }
         System.out.println("Nhập fullName: ");
-        String fullName = sc.nextLine();
+        String fullName = ScannerUtils.inputString();
         System.out.println("Chọn ID department: ");
         List<Department> departments = departmentController.findAll();
         String depID;
@@ -132,47 +149,28 @@ public class AccountFunction {
 
     public void updateAccount() {
         System.out.println("Nhập ID cần sửa: ");
-        int id = sc.nextInt();
-        sc.nextLine();
-        System.out.println("Nhập email: ");
-        String email = sc.nextLine();
+        Integer id;
+        while (true) {
+            id = ScannerUtils.inputID();
+            sc.nextLine();
+            if (!accountController.checkId(id)) {
+                System.out.println("ID không tồn tại. Nhập lại:");
+                continue;
+            }
+            break;
+        }
         System.out.println("Nhập username: ");
-        String username = sc.nextLine();
-        System.out.println("Nhập fullName: ");
-        String fullName = sc.nextLine();
-        System.out.println("Chọn ID department: ");
-        List<Department> departments = departmentController.findAll();
-        String depID;
+        String username = "";
         while (true) {
-            for (Department department : departments) {
-                System.out.println("ID: " + department.getId() + ", DepartmentName: " + department.getName());
+            username = ScannerUtils.inputString();
+            if (accountController.checkUsernameAndIdNot(username, id)) {
+                System.out.println("Username này đã được dùng. Nhập lại:");
+                continue;
             }
-            depID = sc.nextLine();
-            boolean checkExists = checkExistDepartment(departments, depID);
-            if (!checkExists) {
-                System.out.println("Chọn sai, chọn lại!");
-            } else {
-                break;
-            }
+            break;
         }
 
-        System.out.println("Chọn ID position: ");
-        List<Position> positions = positionController.findAll();
-        String poID;
-        while (true) {
-            for (Position position : positions) {
-                System.out.println("ID: " + position.getId() + ", PositionName: " + position.getName());
-            }
-            poID = sc.nextLine();
-            boolean checkExists = checkExistPosition(positions, poID);
-            if (!checkExists) {
-                System.out.println("Chọn sai, chọn lại!");
-            } else {
-                break;
-            }
-        }
-
-        boolean check = accountController.update(id, fullName, email, username, Integer.parseInt(depID), Integer.parseInt(poID));
+        boolean check = accountController.update(id, username);
         if (check) {
             System.out.println("Update thành công");
         } else {

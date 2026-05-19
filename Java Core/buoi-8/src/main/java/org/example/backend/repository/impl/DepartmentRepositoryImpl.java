@@ -105,15 +105,11 @@ public class DepartmentRepositoryImpl implements IDepartmentRepository {
             // b1: kết nối đến DB
             Connection connection = JDBCUtils.getConnection();
             // b2: lấy dữ liệu từ bảng department
-            String sql = "select * from department where department_name like ? ";
-            if (Objects.nonNull(id)) { //id != null
-                    sql += " and department_id != ? ";
-            }
+            String sql = "select * from department where department_name like ? and (department_id != ? or ? is null )";
             PreparedStatement preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setString(1, name);
-            if (Objects.nonNull(id)) { //id != null
-                preparedStatement.setInt(2, id);
-            }
+            preparedStatement.setObject(2, id);
+            preparedStatement.setObject(3, id);
             ResultSet rs = preparedStatement.executeQuery();// thực thi câu lệnh sql và gán bảng trả ra vào ResultSet rs
             if (rs.next()) {// lặp qua qua từng dòng của rs
                 check = true;
@@ -126,8 +122,30 @@ public class DepartmentRepositoryImpl implements IDepartmentRepository {
         return check;
     }
 
-//    public static void main(String[] args) {
-//        DepartmentRepositoryImpl impl = new DepartmentRepositoryImpl();
-//        System.out.println(impl.checkExistName("Tài chính", 5));
-//    }
+    @Override
+    public boolean checkExistId(Integer id) {
+        boolean check = false;
+        try {
+            // b1: kết nối đến DB
+            Connection connection = JDBCUtils.getConnection();
+            // b2: lấy dữ liệu từ bảng department
+            String sql = "select * from department where department_id = ?";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setInt(1, id);
+            ResultSet rs = preparedStatement.executeQuery();// thực thi câu lệnh sql và gán bảng trả ra vào ResultSet rs
+            if (rs.next()) {// lặp qua qua từng dòng của rs
+                check = true;
+            }
+            // đóng các kết nối
+            JDBCUtils.close(connection, preparedStatement, rs);
+        } catch (Exception e) {// show các lỗi lien quan đén logic xử lý
+            e.printStackTrace();// show ra exception
+        }
+        return check;
+    }
+
+    public static void main(String[] args) {
+        DepartmentRepositoryImpl impl = new DepartmentRepositoryImpl();
+        System.out.println(impl.checkExistName("T", null));
+    }
 }

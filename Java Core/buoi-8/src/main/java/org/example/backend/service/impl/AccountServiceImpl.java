@@ -19,6 +19,7 @@ public class AccountServiceImpl implements IAccountService {
 
     @Override
     public boolean create(String email, String username, String fullName, int departmentID, int positionID) {
+        // logic validation
         return accountRepository.create(email, username, fullName, departmentID, positionID);
     }
 
@@ -35,5 +36,25 @@ public class AccountServiceImpl implements IAccountService {
     @Override
     public Map<String, Account> mapAccountByUsername() {
         return accountRepository.mapAccountByUsername();
+    }
+
+    @Override
+    public boolean checkUsernameAndIdNot(String username, Integer id) {
+        return accountRepository.checkUsernameAndIdNot(username, id);
+    }
+
+    @Override
+    public boolean checkEmail(String email) {
+        return accountRepository.checkEmail(email);
+    }
+
+    @Override
+    public boolean checkId(Integer id) {
+        return accountRepository.checkId(id);
+    }
+
+    @Override
+    public boolean update(Integer id, String username) {
+        return accountRepository.update(id, username);
     }
 }

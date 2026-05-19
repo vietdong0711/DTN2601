@@ -26,4 +26,12 @@ public class PositionController {
     public boolean delete(int id) {
         return positionService.delete(id);
     }
+
+    public boolean checkExist(Integer id, PositionName name) {
+        return positionService.checkExist(id, name);
+    }
+
+    public boolean checkExistID(Integer id) {
+        return positionService.checkExistID(id);
+    }
 }

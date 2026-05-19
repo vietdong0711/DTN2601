@@ -31,4 +31,20 @@ public class AccountController {
     public Map<String, Account> mapAccountByUsername() {
         return accountService.mapAccountByUsername();
     }
+
+    public boolean checkUsernameAndIdNot(String username, Integer id) {
+        return accountService.checkUsernameAndIdNot(username, id);
+    }
+
+    public boolean checkEmail(String email) {
+        return accountService.checkEmail(email);
+    }
+
+    public boolean checkId(Integer id) {
+        return accountService.checkId(id);
+    }
+
+    public boolean update(Integer id, String username) {
+        return accountService.update(id, username);
+    }
 }

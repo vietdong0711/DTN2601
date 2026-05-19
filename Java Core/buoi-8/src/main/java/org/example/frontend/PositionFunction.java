@@ -3,6 +3,7 @@ package org.example.frontend;
 import org.example.backend.controller.PositionController;
 import org.example.entity.Position;
 import org.example.enums.PositionName;
+import org.example.utils.ScannerUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,21 +62,14 @@ public class PositionFunction {
 
     public void insertPosition() {
         System.out.println("Nhập tên chức vụ: 1.DEV     2.TEST      3.SCRUM_MASTER      4.PM");
-        String choice = sc.nextLine();
         PositionName name;
-        switch (choice) {
-            case "1":
-                name = PositionName.DEV;
-                break;
-            case "2":
-                name = PositionName.TEST;
-                break;
-            case "3":
-                name = PositionName.SCRUM_MASTER;
-                break;
-            default:
-                name = PositionName.PM;
-
+        while (true) {
+            name = setPositionName();
+            if (positionController.checkExist(null, name)) {
+                System.out.println("Nhập lại: ");
+                continue;
+            }
+            break;
         }
         boolean check = positionController.create(name);
         if (check) {
@@ -87,8 +81,15 @@ public class PositionFunction {
 
     public void deletePosition() {
         System.out.println("Nhập ID chức vụ muốn xóa: ");
-        int id = sc.nextInt();
-        sc.nextLine();
+        Integer id;
+        while (true) {
+            id = ScannerUtils.inputInt();
+            if (!positionController.checkExistID(id)) {
+                System.out.println("Nhập lại: ");
+                continue;
+            }
+            break;
+        }
         boolean check = positionController.delete(id);
         if (check) {
             System.out.println("Xóa thành công");
@@ -99,11 +100,38 @@ public class PositionFunction {
 
     public void updatePosition() {
         System.out.println("Nhập tên ID chức vụ cần sửa: ");
-        int id = sc.nextInt();
-        sc.nextLine();
+        Integer id;
+        while (true) {
+            id = ScannerUtils.inputInt();
+            if (!positionController.checkExistID(id)) {
+                System.out.println("Nhập lại: ");
+                continue;
+            }
+            break;
+        }
+
         System.out.println("Nhập tên chức vụ: 1.DEV     2.TEST      3.SCRUM_MASTER      4.PM");
-        String choice = sc.nextLine();
         PositionName name;
+        while (true) {
+            name = setPositionName();
+            if (positionController.checkExist(id, name)) {
+                System.out.println("Nhập lại: ");
+                continue;
+            }
+            break;
+        }
+
+        boolean check = positionController.update(id, name);
+        if (check) {
+            System.out.println("Update thành công");
+        } else {
+            System.out.println("Update thất bại");
+        }
+    }
+
+    private PositionName setPositionName() {
+        PositionName name;
+        String choice = sc.nextLine();
         switch (choice) {
             case "1":
                 name = PositionName.DEV;
@@ -118,13 +146,7 @@ public class PositionFunction {
                 name = PositionName.PM;
 
         }
-
-        boolean check = positionController.update(id, name);
-        if (check) {
-            System.out.println("Update thành công");
-        } else {
-            System.out.println("Update thất bại");
-        }
+        return name;
     }
 }
 
