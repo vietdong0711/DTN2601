@@ -22,6 +22,7 @@ public class DepartmentFunction {
             System.out.println("2. Thêm mới department");
             System.out.println("3. Xóa department theo id");
             System.out.println("4. Update department theo ID");
+            System.out.println("5. Import phòng ban từ file csv");
             System.out.println("8. Thoát");
             String choice = sc.nextLine();
             switch (choice) {
@@ -38,6 +39,9 @@ public class DepartmentFunction {
                 case "4":
                     this.updateDepartment();
                     break;
+                case "5":
+                    this.importDepartmentToCSV();
+                    break;
                 case "8":
                     return;
                 default:
@@ -45,6 +49,14 @@ public class DepartmentFunction {
             }
         }
 
+    }
+
+    //  địa chỉ lưu file  D:\input_department.csv
+    private void importDepartmentToCSV() {
+        System.out.println("Nhập địa chỉ file cần import: ");
+        String pathName = sc.nextLine();
+        String message = departmentController.importDepartmentToCSV(pathName);
+        System.out.println(message);
     }
 
     public void showDepartment(List<Department> departments) {

@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.util.Date;
 
 public class Account {
+    public static Integer ID = 0;
+
     private int id;
     private String username;
     private String fullName;
@@ -14,6 +16,16 @@ public class Account {
 
     public Account() {
 
+    }
+
+    public Account(String username, String fullName, String email, Department department, Position position, Date createDate) {
+        this.id = ID++;
+        this.username = username;
+        this.fullName = fullName;
+        this.email = email;
+        this.department = department;
+        this.position = position;
+        this.createDate = createDate;
     }
 
     public Account(int id, String username, String fullName, String email, Department department, Position position) {

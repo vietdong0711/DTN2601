@@ -46,8 +46,9 @@ public class ScannerUtils {
     // kiem tra dinh dang email xem co hop le ko
     public static String inputEmail() {
         while (true) {
+
             String email = sc.nextLine();// equals(); so sanh gtri,   == so sánh địa chỉ ,  biểu thức chính quy, matches(): so sánh  theo quy tắc
-            if (email == null || email.trim().isEmpty() || !email.matches("^[a-zA-Z0-9_!#$%&'*+/=?`{|}~^.-]+@[a-zA-Z0-9.-]+$")) {// a@b
+            if (email == null || email.trim().isEmpty() || !email.matches(StringCommon.EMAIL_REGEX)) {// a@b
                 System.out.print("Nhập lại: ");
             } else {
                 return email;

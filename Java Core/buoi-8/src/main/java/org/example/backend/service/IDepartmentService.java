@@ -2,6 +2,7 @@ package org.example.backend.service;
 
 import org.example.entity.Department;
 
+import java.io.FileNotFoundException;
 import java.util.List;
 
 public interface IDepartmentService {
@@ -11,4 +12,6 @@ public interface IDepartmentService {
     boolean delete(int id);
     boolean checkExistName(String name, Integer id);
     boolean checkExistId(Integer id);
+
+    String importDepartmentToCSV(String pathName);
 }

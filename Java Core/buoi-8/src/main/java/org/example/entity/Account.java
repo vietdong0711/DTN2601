@@ -90,4 +90,9 @@ public class Account {
     public void setCreateDate(Date createDate) {
         this.createDate = createDate;
     }
+
+
+    public final void an() {
+        System.out.println("đang ăn");
+    }
 }
