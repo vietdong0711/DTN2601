@@ -16,9 +16,15 @@ public interface IAccountRepository {
 
     Map<String, Account> mapAccountByUsername();
 
+    Map<String, Account> mapAccountByEmail();
+
     boolean checkUsernameAndIdNot(String username, Integer id);
+
     boolean checkEmail(String email);
+
     boolean checkId(Integer id);
 
     boolean update(Integer id, String username);
+
+    boolean createAccounts(List<Account> accounts);
 }

@@ -157,6 +157,43 @@ public class AccountRepositoryImpl implements IAccountRepository {
     }
 
     @Override
+    public Map<String, Account> mapAccountByEmail() {
+        Map<String, Account> mapAccountByEmail = new HashMap<>();
+        try {
+            // b1: kết nối đến DB
+            Connection connection = JDBCUtils.getConnection();
+            // b2: lấy dữ liệu từ bảng account
+            String sql = "select acc.*, de.department_name, po.position_name \n" +
+                    "from account acc\n" +
+                    "left join department de on acc.department_id = de.department_id\n" +
+                    "left join position po on acc.position_id = po.position_id;";
+            Statement statement = connection.createStatement();
+            ResultSet rs = statement.executeQuery(sql);// thực thi câu lệnh sql và gán bảng trả ra vào ResultSet rs
+            while (rs.next()) {// lặp qua qua từng dòng của rs
+                Integer id = rs.getInt("account_id");// lấy giá trị từ cloumn account_id
+                String email = rs.getString("email");//lấy giá trị từ cloumn account_name
+                String userName = rs.getString("username");
+                String fullName = rs.getString("full_name");
+                Integer departmentID = rs.getInt("department_id");
+                String departmentName = rs.getString("department_name");
+                Integer positionID = rs.getInt("position_id");
+                String positionName = rs.getString("position_name");
+                Date createDate = rs.getDate("create_date");
+
+                Department department = new Department(departmentID, departmentName);
+                Position position = new Position(positionID, PositionName.valueOf(positionName));
+
+                Account account = new Account(id, userName, fullName, email, department, position, createDate);
+
+                mapAccountByEmail.put(email, account);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return mapAccountByEmail;
+    }
+
+    @Override
     public boolean checkUsernameAndIdNot(String username, Integer id) {
         boolean check = false;
         try {
@@ -241,6 +278,33 @@ public class AccountRepositoryImpl implements IAccountRepository {
             int c = preparedStatement.executeUpdate();// executeUpdate sẽ trả về 1 số nguyên, đại diện cho số dòng bị thay đổi trong DB
             JDBCUtils.close(connection, preparedStatement, null);
             return  c > 0;
+        } catch (Exception e) {// show các lỗi lien quan đén logic xử lý
+            e.printStackTrace();// show ra exception
+        }
+        return false;
+    }
+
+    @Override
+    public boolean createAccounts(List<Account> accounts) {
+        try {
+            // b1: kết nối đến DB
+            Connection connection = JDBCUtils.getConnection();
+            // b2: tiến hành thêm mới account
+            String sql = "INSERT INTO account (email, username, full_name, department_id, position_id)\n" +
+                    "VALUES (?, ?, ?, ?, ?);";
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            for (Account account : accounts) {
+                preparedStatement.setString(1, account.getEmail());
+                preparedStatement.setString(2, account.getUsername());
+                preparedStatement.setString(3, account.getFullName());
+                preparedStatement.setInt(4, account.getDepartment().getId());
+                preparedStatement.setInt(5, account.getPosition().getId());
+                preparedStatement.addBatch();
+            }
+
+            preparedStatement.executeBatch();// executeUpdate sẽ trả về 1 số nguyên, đại diện cho số dòng bị thay đổi trong DB
+            JDBCUtils.close(connection, preparedStatement, null);
+            return  true;
         } catch (Exception e) {// show các lỗi lien quan đén logic xử lý
             e.printStackTrace();// show ra exception
         }

@@ -24,4 +24,12 @@ public class ImportError {
     public void setMessage(String message) {
         this.message = message;
     }
+    // tại sao ImportError(la class giong department) ko lưu vào entity
+    // do chức năng ImportError  lưu lại các dữ liệu lỗi + message lỗi
+    // entity : lưu cac đối tượng mapping với database
+
+    // DTO : data transfer object (Đối tượng truyền dữ liệu)
+    // khi mà import department, acc, position mà dữ liệu ko hợp lệ
+    //      thì mình sẽ đưa thông tin của row đó, message lỗi vào ImportError
+        // để xuất ra file
 }

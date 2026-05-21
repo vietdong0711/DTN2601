@@ -6,7 +6,6 @@ import org.example.utils.ScannerUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Scanner;
 
 public class DepartmentFunction {
@@ -40,7 +39,7 @@ public class DepartmentFunction {
                     this.updateDepartment();
                     break;
                 case "5":
-                    this.importDepartmentToCSV();
+                    this.importDepartmentFromCSV();
                     break;
                 case "8":
                     return;
@@ -52,10 +51,10 @@ public class DepartmentFunction {
     }
 
     //  địa chỉ lưu file  D:\input_department.csv
-    private void importDepartmentToCSV() {
+    private void importDepartmentFromCSV() {
         System.out.println("Nhập địa chỉ file cần import: ");
         String pathName = sc.nextLine();
-        String message = departmentController.importDepartmentToCSV(pathName);
+        String message = departmentController.importDepartmentFromCSV(pathName);
         System.out.println(message);
     }
 

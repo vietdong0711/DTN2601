@@ -47,4 +47,8 @@ public class AccountController {
     public boolean update(Integer id, String username) {
         return accountService.update(id, username);
     }
+
+    public String importAccountFromCSV(String pathName) {
+        return accountService.importAccountFromCSV(pathName);
+    }
 }

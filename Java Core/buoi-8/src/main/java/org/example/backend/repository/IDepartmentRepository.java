@@ -4,6 +4,7 @@ import org.example.entity.Department;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 public interface IDepartmentRepository {
     List<Department> findAll();
@@ -14,4 +15,6 @@ public interface IDepartmentRepository {
     boolean checkExistId(Integer id);
 
     boolean createDepartments(List<Department> departments) throws SQLException;
+
+    Map<String, Department> mapDepartmentByName();
 }

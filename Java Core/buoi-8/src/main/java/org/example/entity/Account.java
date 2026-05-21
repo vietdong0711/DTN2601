@@ -15,6 +15,15 @@ public class Account {
 
     }
 
+    public Account(String username, String fullName, String email, Department department, Position position) {
+        this.username = username;
+        this.fullName = fullName;
+        this.email = email;
+        this.department = department;
+        this.position = position;
+        this.createDate = new Date();
+    }
+
     public Account(int id, String username, String fullName, String email, Department department, Position position) {
         this.id = id;
         this.username = username;

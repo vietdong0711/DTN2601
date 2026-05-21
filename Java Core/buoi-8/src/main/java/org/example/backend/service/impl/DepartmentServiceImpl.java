@@ -12,8 +12,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 public class DepartmentServiceImpl implements IDepartmentService {
     // khởi tạo repository
@@ -50,80 +54,78 @@ public class DepartmentServiceImpl implements IDepartmentService {
         return departmentRepository.checkExistId(id);
     }
 
+    //D:\input_department.csv
     // đọc file   +    lấy ra ds deprtment để gửi xuống repository de lưu lại
     // row nào gặp lỗi xuất ra file lỗi
     // row nào ko loi thì import bình thuwowfn
     @Override
-    public String importDepartmentToCSV(String pathName) {//pathName; đường dẫn đén file trong máy
-        // FileReader đọc file từ đường dẫn, đọc từng chữ cái
-        //BufferedReader đọc theo từng dòng
+    public String importDepartmentFromCSV(String pathName) {//pathName; đường dẫn đén file trong máy
+        if (!pathName.endsWith(".csv")) {
+            return "File này ko đúng định";
+        }
         List<Department> departments = new ArrayList<>();
         List<ImportError> importErrors = new ArrayList<>();
         boolean firstLine = true;
         boolean checkImport = false;
-        String message = "";
         try (BufferedReader br = new BufferedReader(new FileReader(pathName))) {
-
-//            String line = br.readLine();// đang đọc 1 dòng
             String line;
+            Map<String, Department> mapDepartmentByName = departmentRepository.mapDepartmentByName();
             while ((line = br.readLine()) != null) {
-                List<String> errors = new ArrayList<>();
-                // bor qua dòng đầu tien vi day là header
                 if (firstLine) {
                     firstLine = false;
                     continue;
                 }
-
-                String[] fields = line.split(",");
-                String departmentName = fields[0];
-                // validate dữ lieu
-                if (Objects.isNull(departmentName) || departmentName.trim().isEmpty()) {
-                    // Tên phòng ban không được để trống
-                    errors.add("Tên phòng ban không được để trống");
-                }
-                // check xem tên phòng ban có bị trùng hay ko
-                if (departmentRepository.checkExistName(departmentName, null)) {
-                    // Tên phòng ban đã tồn tại
-                    errors.add("Tên phòng ban đã tồn tại");
-                }
-                if (errors.isEmpty()) {// nếu ko có lỗi thì thêm vào ds để lưu vào DB
-                    Department dep = new Department(departmentName);
-                    departments.add(dep);
-                } else {// có lỗi thì xuất ra
-                    importErrors.add(new ImportError(line, String.join(" | ", errors)));
-                }
-            }
-            // xuất ra file lỗi list  importErrors  ra file csv  D:\output_department_error.csv
-            String pathError = "D:\\output_department_error.csv";
-            try (BufferedWriter bw = new BufferedWriter(new FileWriter(pathError))) {
-                bw.write("depatment_name,message_error");
-                bw.newLine();
-                for (ImportError error : importErrors) {
-                    bw.write(error.getLine() + "," + error.getMessage());
-                    bw.newLine();
-                }
-            } catch (Exception e) {
-//                e.printStackTrace();
+                this.validation(line, departments, importErrors, mapDepartmentByName);
             }
 
-
-            // insert vào DB
             if (!departments.isEmpty()) {
                 checkImport = departmentRepository.createDepartments(departments);
             }
-        } catch (Exception e) {
-//            message = "Import lỗi " + e.getMessage();
-        }
 
-        return checkImport ? "Import thành công" : "Import lỗi, đã xuất file ra D:\\output_department_error.csv";
+            if (!importErrors.isEmpty()) {
+                this.exportFileCSV(importErrors);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return checkImport && importErrors.isEmpty() ? "Import thành công" : "Import lỗi, đã xuất file ra D:\\output_department_error.csv";
     }
 
+    // validate, thêm vào ds departments nếu ko có lỗi, thêm vào ds importErrors nếu có lỗi
+    public void validation(String line, List<Department> departments, List<ImportError> importErrors, Map<String, Department> mapDepartmentByName) {
+        String[] fields = line.split(",");
+        String departmentName = fields[0];
+        List<String> errors = new ArrayList<>();// luu lai ds loi cua line này
+        if (Objects.isNull(departmentName) || departmentName.trim().isEmpty()) {
+            errors.add("Tên phòng ban không được để trống");
+        }
+        if (mapDepartmentByName.containsKey(departmentName)) {
+            errors.add("Tên phòng ban đã tồn tại");
+        }
 
-//    public static void main(String[] args) {
-//        List<String> strings = new ArrayList<>();
-//        strings.add("1");
-//        strings.add("2");
-//        strings.add("3");
-//        System.out.println(String.join(" | ", strings));
-//    }
+        if (errors.isEmpty()) {// nếu ko có lỗi thì thêm vào ds để lưu vào DB
+            Department dep = new Department(departmentName);
+            departments.add(dep);
+            // moi khi có department hop le thi se them luôn vào map để check trùng các row sau
+            mapDepartmentByName.put(departmentName, dep);
+        } else {// có lỗi thì xuất ra
+            importErrors.add(new ImportError(line, String.join(" | ", errors)));
+        }
+    }
+
+    // xuat file
+    public void exportFileCSV(List<ImportError> importErrors) {
+        // xuất ra file lỗi list  importErrors  ra file csv  D:\output_department_error.csv
+        String pathError = "D:\\output_department_error.csv";
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(pathError))) {
+            bw.write("depatment_name,message_error");
+            bw.newLine();
+            for (ImportError error : importErrors) {
+                bw.write(error.getLine() + "," + error.getMessage());
+                bw.newLine();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -17,8 +17,12 @@ public interface IAccountService {
     Map<String, Account> mapAccountByUsername();
 
     boolean checkUsernameAndIdNot(String username, Integer id);
+
     boolean checkEmail(String email);
+
     boolean checkId(Integer id);
 
     boolean update(Integer id, String username);
+
+    String importAccountFromCSV(String pathName);
 }
