@@ -14,10 +14,7 @@ import org.example.entity.Account;
 import org.example.entity.Department;
 import org.example.entity.Position;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -79,6 +76,11 @@ public class AccountServiceImpl implements IAccountService {
 
     @Override
     public String importAccountFromCSV(String pathName) {
+        File file = new File(pathName);
+        if (!file.exists()) {
+            return "File này ko ko tồn tại";
+        }
+
         if (!pathName.endsWith(".csv")) {
             return "File ko đúng định dạng!";
         }
@@ -98,12 +100,13 @@ public class AccountServiceImpl implements IAccountService {
                 // validation + them vao ds accounts neu du lieu hop le, them vao importErrors nếu du lieu ko hop le
                 this.validate(line, importErrors, accounts, mapAccountByUsername, mapAccountByEmail, departments, positions);
             }
-            // xuất ra file lỗi list  importErrors  ra file csv  D:\output_department_error.csv
-            this.exportAccountErrorToCSV(header, PATH_ERROR, importErrors);
             // insert vào DB
             if (!accounts.isEmpty()) {
                 checkImport = accountRepository.createAccounts(accounts);
             }
+            // xuất ra file lỗi list  importErrors  ra file csv  D:\output_department_error.csv
+            this.exportAccountErrorToCSV(header, PATH_ERROR, importErrors);
+
         } catch (Exception e) {
             e.printStackTrace();
         }

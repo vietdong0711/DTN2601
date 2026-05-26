@@ -4,6 +4,7 @@ import org.example.backend.service.IDepartmentService;
 import org.example.backend.service.impl.DepartmentServiceImpl;
 import org.example.entity.Department;
 
+import java.sql.SQLException;
 import java.util.List;
 
 public class DepartmentController {

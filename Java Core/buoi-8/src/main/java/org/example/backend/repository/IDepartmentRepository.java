@@ -14,7 +14,7 @@ public interface IDepartmentRepository {
     boolean checkExistName(String name, Integer id);
     boolean checkExistId(Integer id);
 
-    boolean createDepartments(List<Department> departments) throws SQLException;
+    boolean createDepartments(List<Department> departments);
 
     Map<String, Department> mapDepartmentByName();
 }

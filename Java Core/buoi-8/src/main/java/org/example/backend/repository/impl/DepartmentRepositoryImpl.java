@@ -65,7 +65,7 @@ public class DepartmentRepositoryImpl implements IDepartmentRepository {
 
 
     @Override
-    public boolean createDepartments(List<Department> departments) throws SQLException {
+    public boolean createDepartments(List<Department> departments) {
         Connection connection = null;
         PreparedStatement preparedStatement = null;
         try {
@@ -85,7 +85,11 @@ public class DepartmentRepositoryImpl implements IDepartmentRepository {
             JDBCUtils.close(connection, preparedStatement, null);
             return true;
         } catch (Exception e) {// show các lỗi lien quan đén logic xử lý
-            connection.rollback();// hoàn lại dữ liệu nếu gặp lỗi
+            try {
+                connection.rollback();// hoàn lại dữ liệu nếu gặp lỗi
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
 
             e.printStackTrace();// show ra exception
         } finally {
