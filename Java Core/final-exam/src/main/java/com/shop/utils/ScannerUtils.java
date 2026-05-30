@@ -1,6 +1,7 @@
-package org.example.utils;
+package com.shop.utils;
 
-import org.example.common.StringCommon;
+
+import com.shop.common.StringCommon;
 
 import java.util.Objects;
 import java.util.Scanner;
@@ -48,15 +49,51 @@ public class ScannerUtils {
     // kiem tra dinh dang email xem co hop le ko
     public static String inputEmail() {
         while (true) {
-
             String email = sc.nextLine();// equals(); so sanh gtri,   == so sánh địa chỉ ,  biểu thức chính quy, matches(): so sánh  theo quy tắc
             if (email == null || email.trim().isEmpty() || !email.matches(StringCommon.EMAIL_REGEX)) {// a@b
-                System.out.print("Nhập lại: ");
+                System.out.print("Không đúng định dạng Nhập lại: ");
             } else {
                 return email;
             }
         }
     }
 
+    public static String inputFullName() {
+        while (true) {
+            String fullName = ScannerUtils.inputString();
+            if (fullName == null
+                    || !fullName.matches("^[aAàÀảẢãÃáÁạẠăĂằẰẳẲẵẴắẮặẶâÂầẦẩẨẫẪấẤậẬbBcCdDđĐeEèÈẻẺẽẼéÉẹẸêÊềỀểỂễỄếẾệỆ"
+                    + "fFgGhHiIìÌỉỈĩĨíÍịỊjJkKlLmMnNoOòÒỏỎõÕóÓọỌôÔồỒổỔỗỖốỐộỘơƠờỜởỞỡỠớỚợỢpPqQrRsStTuUùÙủỦũŨú"
+                    + "ÚụỤưƯừỪửỬữỮứỨựỰvVwWxXyYỳỲỷỶỹỸýÝỵỴzZ \\\\ _-]{3,25}$")) {
 
+                System.out.println("Nhập lại: ");
+
+            } else {
+                return fullName;
+            }
+        }
+    }
+
+    public static String inputPassword() {
+        while (true) {
+            String password = ScannerUtils.inputString();
+            if (password.length() < 6 || password.length() > 12) {
+                System.out.print("Nhập lại: ");
+                continue;
+            }
+            boolean hasAtLeast1Character = false;
+            for (int i = 0; i < password.length(); i++) {
+                if (Character.isUpperCase(password.charAt(i))) {
+                    hasAtLeast1Character = true;
+                    break;
+                }
+            }
+
+            if (hasAtLeast1Character) {// password dung
+                return password;
+            } else {
+                System.out.print("Mời bạn nhập lại password: ");
+            }
+        }
+    }
 }

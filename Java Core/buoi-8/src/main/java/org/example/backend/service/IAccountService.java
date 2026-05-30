@@ -1,11 +1,13 @@
 package org.example.backend.service;
 
+import org.example.dto.context.AccountContext;
+import org.example.dto.csv.AccountCsv;
 import org.example.entity.Account;
 
 import java.util.List;
 import java.util.Map;
 
-public interface IAccountService {
+public interface IAccountService extends ImportFile<AccountCsv, AccountContext, Account> {
     List<Account> findAll();
 
     boolean create(String email, String username, String fullName, int departmentID, int positionID);

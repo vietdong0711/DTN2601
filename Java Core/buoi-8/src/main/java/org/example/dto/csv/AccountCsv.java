@@ -10,7 +10,7 @@ public class AccountCsv {
     private String departmentID;
     private String positionID;
 
-    public AccountCsv(String departmentID, String email, String fullName, String positionID, String username) {
+    public AccountCsv(String username, String fullName, String email, String departmentID, String positionID) {
         this.departmentID = departmentID;
         this.email = email;
         this.fullName = fullName;
@@ -56,5 +56,16 @@ public class AccountCsv {
 
     public void setUsername(String username) {
         this.username = username;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(username).append(",");
+        sb.append(fullName).append(",");
+        sb.append(email).append(",");
+        sb.append(departmentID).append(",");
+        sb.append(positionID);
+        return sb.toString();
     }
 }

@@ -87,7 +87,7 @@ public class AccountFunction {
         String email = "";
         while (true) {
             email = ScannerUtils.inputEmail();
-            if (!accountController.checkEmail(email)) {
+            if (accountController.checkEmail(email)) {
                 System.out.println("Email này đã được sử dụng. Nhập lại:");
                 continue;
             }

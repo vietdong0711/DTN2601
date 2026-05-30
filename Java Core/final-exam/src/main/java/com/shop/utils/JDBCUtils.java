@@ -1,7 +1,6 @@
-package org.example.utils;
+package com.shop.utils;
 
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -13,14 +12,13 @@ public class JDBCUtils {
 
 
     public static Connection getConnection() throws IOException {
-//        String url = "jdbc:mysql://localhost:3306/dtn2601_testing_system";
-//        String username = "root";
-//        String password = "root";// mk mysql
-        Properties prop = new Properties();
-        prop.load(new FileInputStream("src/main/resources/database.properties"));
-        String url = prop.getProperty("url");
-        String username = prop.getProperty("username");
-        String password = prop.getProperty("password");
+        String url = "jdbc:mysql://localhost:3306/final_exam";
+        String username = "root";
+        String password = "root";// mk mysql
+//        prop.load(new FileInputStream("src/main/resources/database.properties"));
+//        String url = prop.getProperty("url");
+//        String username = prop.getProperty("username");
+//        String password = prop.getProperty("password");
         Connection connection = null;
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -46,9 +44,5 @@ public class JDBCUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    public static void main(String[] args) throws IOException {
-        getConnection();
     }
 }
