@@ -6,6 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Getter
 @Setter
 @Entity
@@ -21,4 +23,6 @@ public class Department {
     @Column(name = "department_name", nullable = false, unique = true, length = 100) // not null unique, 100 kí tự
     private String name;
 
+//    @OneToMany(mappedBy = "department")
+//    private List<Account> accounts;
 }
