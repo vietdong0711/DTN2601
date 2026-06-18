@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.Date;
-import java.util.List;
 
 @Getter
 @Setter
@@ -23,6 +22,9 @@ public class Account {
 
     @Column(nullable = false, unique = false, length = 100)
     private String username;
+
+    @Column
+    private String password;
 
     @Column(nullable = false, length = 100)
     private String fullName;
@@ -41,7 +43,4 @@ public class Account {
     @Column(columnDefinition = "datetime default CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createDate;
-
-
-
 }
