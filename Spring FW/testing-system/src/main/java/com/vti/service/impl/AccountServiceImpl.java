@@ -1,11 +1,15 @@
 package com.vti.service.impl;
 
+import com.vti.config.JWTUtils;
 import com.vti.dto.AccountDTO;
+import com.vti.dto.LoginDTO;
 import com.vti.entity.Account;
 import com.vti.entity.Department;
 import com.vti.entity.Position;
+import com.vti.exception.BusinessException;
 import com.vti.form.AccountCreateForm;
 import com.vti.form.AccountSearchForm;
+import com.vti.form.LoginForm;
 import com.vti.repository.IAccountRepository;
 import com.vti.repository.IDepartmentRepository;
 import com.vti.repository.IPositionRepository;
@@ -20,8 +24,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +50,10 @@ public class AccountServiceImpl implements IAccountService {
     private IPositionRepository positionRepository;
     @Autowired
     private ModelMapper modelMapper;
+    @Autowired
+    private AuthenticationManager authenticationManager;// check user+ pass
+    @Autowired
+    private JWTUtils jwtUtils;// generate token
 
     @Override
     public Page<AccountDTO> findAll(Pageable pageable, AccountSearchForm form) {
@@ -74,7 +91,7 @@ public class AccountServiceImpl implements IAccountService {
 //            AccountDTO dto = modelMapper.map(acc, AccountDTO.class);
 //            dtos.add(dto);
 //        }
-        Page<AccountDTO> pageDTO = pageAccounts.map( account -> new AccountDTO(account));
+        Page<AccountDTO> pageDTO = pageAccounts.map(account -> new AccountDTO(account));
         return pageDTO;
     }
 
@@ -97,15 +114,16 @@ public class AccountServiceImpl implements IAccountService {
         // validation email, username, .....
         account.setEmail(form.getEmail());
         if (accountRepository.existsByUsernameAndIdNot(form.getUsername(), null)) {
-            throw new RuntimeException("Username đã tồn tại");
+            throw BusinessException.builder().message("Username da ton tai!")
+                    .code("VALIDATION_ERROR").status(500).build();
         }
         account.setUsername(form.getUsername());
         account.setFullName(form.getFullName());
         account.setPassword(form.getPassword());
         // chuyen departmentId ở from -> department
-        Department department= departmentRepository.findById(form.getDepartmentId()).orElse(null);
+        Department department = departmentRepository.findById(form.getDepartmentId()).orElse(null);
         if (Objects.isNull(department)) {
-            throw new RuntimeException("Department ID not found!");
+            throw BusinessException.builder().message("Department ID not found!").code("VALIDATION_ERROR").status(500).build();
         }
         account.setDepartment(department);
         // chuyen positionId ở from -> position
@@ -134,7 +152,7 @@ public class AccountServiceImpl implements IAccountService {
         }
 
         // chuyen departmentId ở from -> department
-        Department department= departmentRepository.findById(form.getDepartmentId()).orElse(null);
+        Department department = departmentRepository.findById(form.getDepartmentId()).orElse(null);
         if (Objects.isNull(department)) {
             throw new RuntimeException("Department ID not found!");
         }
@@ -151,5 +169,24 @@ public class AccountServiceImpl implements IAccountService {
         account.setPosition(position);
 
         accountRepository.save(account);
+    }
+
+    @Override
+    public LoginDTO login(LoginForm form) {
+        // check username + password
+        Authentication authen = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(form.getUsername(), form.getPassword()));
+
+        // generate token
+        String token = jwtUtils.generateToken(form.getUsername());
+        return new LoginDTO(token);
+    }
+
+    @Override// lấy ra UserDetails để spring security quản lý
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Account account = accountRepository.findByUsername(username);
+        if (Objects.isNull(account)) {
+            throw new UsernameNotFoundException("Username not found!");
+        }
+        return new User(username, account.getPassword(), AuthorityUtils.createAuthorityList(account.getRole().name()));
     }
 }
