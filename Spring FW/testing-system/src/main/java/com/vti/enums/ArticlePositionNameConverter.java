@@ -10,7 +10,7 @@ public class ArticlePositionNameConverter implements AttributeConverter<Position
         if (attribute == null) {
             return null;
         }
-        return attribute.getName();
+        return attribute.getValue();
     }
 
     @Override// chuyển từ String lay tu DB -> enum (Java)

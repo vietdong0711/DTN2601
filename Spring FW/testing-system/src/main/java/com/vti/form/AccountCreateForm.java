@@ -2,6 +2,7 @@ package com.vti.form;
 
 import com.vti.entity.Department;
 import com.vti.entity.Position;
+import com.vti.validation.account.UsernameNotExist;
 import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -21,9 +22,12 @@ public class AccountCreateForm {
 
     @NotBlank(message = "Username ko được để trống")
     @Length(max = 100, message = "Username ko được dài quá 100 kí tự")
+    // check unique username
+//    @UsernameNotExist
     private String username;
     private String password;
     private String fullName;
+
     @Email(regexp = "^[a-zA-Z0-9_+.-]+@[a-zA-Z0-9.-]+$", message = "Phải nhập đúng định dạng email")
     @Length(max = 100, message = "Email ko được dài quá 100 kí tự")
     private String email;

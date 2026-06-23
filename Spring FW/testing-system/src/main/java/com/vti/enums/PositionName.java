@@ -1,22 +1,19 @@
 package com.vti.enums;
 
-import jakarta.persistence.AttributeConverter;
-import jakarta.persistence.Converter;
-
 import java.util.Arrays;
 
 public enum PositionName {
     DEV("D", "1"),TEST("T", "1"),SCRUM_MASTER("S", "0"),PM("PM", "0");
-    private String name;
+    private String value;
     private String status;
 
-    private PositionName(String name, String status) {
-        this.name = name;
+    private PositionName(String value, String status) {
+        this.value = value;
         this.status = status;
     }
 
-    public String getName() {
-        return name;
+    public String getValue() {
+        return value;
     }
 
     public String getStatus() {
@@ -31,7 +28,7 @@ public enum PositionName {
 //        }
 //        return null;
         PositionName positionName = Arrays.stream(PositionName.values())
-                .filter(i -> i.getName().equals(sqlValue)).findFirst().orElse(null);
+                .filter(i -> i.getValue().equals(sqlValue)).findFirst().orElse(null);
         return positionName;
     }
 }

@@ -5,13 +5,21 @@ import com.vti.entity.Account;
 import com.vti.entity.Department;
 import com.vti.entity.Position;
 import com.vti.form.AccountCreateForm;
+import com.vti.form.AccountSearchForm;
 import com.vti.repository.IAccountRepository;
 import com.vti.repository.IDepartmentRepository;
 import com.vti.repository.IPositionRepository;
 import com.vti.service.IAccountService;
+import com.vti.specification.AccountCustomSpecification;
 import jakarta.transaction.Transactional;
+import org.apache.commons.lang3.StringUtils;
+import org.modelmapper.Converter;
 import org.modelmapper.ModelMapper;
+import org.modelmapper.spi.MappingContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -31,19 +39,43 @@ public class AccountServiceImpl implements IAccountService {
     private ModelMapper modelMapper;
 
     @Override
-    public List<AccountDTO> findAll() {
-        // láy ds account tu DB
-        List<Account> accounts = accountRepository.findAll();
-        // chuyển từ List account -> List accountDTO
-        List<AccountDTO> dtos = new ArrayList<>();
-        for (Account acc: accounts) {
-//            dtos.add(new AccountDTO(acc));
-            //1. acc: là entity muoon convert sang DTO
-            //2. AccountDTO.class: kiểu dữ liệu mong muốn được chuyen thành
-            AccountDTO dto = modelMapper.map(acc, AccountDTO.class);
-            dtos.add(dto);
+    public Page<AccountDTO> findAll(Pageable pageable, AccountSearchForm form) {
+        Specification<Account> where = Specification.unrestricted();// where 1=1
+        if (StringUtils.isNotEmpty(form.getUsername())) {
+            AccountCustomSpecification username
+                    = new AccountCustomSpecification("username", form.getUsername());
+            where = where.and(username);
         }
-        return dtos;
+        if (StringUtils.isNotEmpty(form.getEmail())) {
+            AccountCustomSpecification email
+                    = new AccountCustomSpecification("email", form.getEmail());
+            where = where.and(email);
+        }
+        if (StringUtils.isNotEmpty(form.getFullName())) {
+            AccountCustomSpecification fullName
+                    = new AccountCustomSpecification("fullName", form.getFullName());
+            where = where.and(fullName);
+        }
+        if (StringUtils.isNotEmpty(form.getDepartmentName())) {
+            AccountCustomSpecification departmentName
+                    = new AccountCustomSpecification("departmentName", form.getDepartmentName());
+            where = where.and(departmentName);
+        }
+        if (StringUtils.isNotEmpty(form.getPositionName())) {
+            AccountCustomSpecification positionName
+                    = new AccountCustomSpecification("positionName", form.getPositionName());
+            where = where.and(positionName);
+        }
+        Page<Account> pageAccounts = accountRepository.findAll(where, pageable);
+        // page : content +
+
+//        List<AccountDTO> dtos = new ArrayList<>();
+//        for (Account acc: accounts) {
+//            AccountDTO dto = modelMapper.map(acc, AccountDTO.class);
+//            dtos.add(dto);
+//        }
+        Page<AccountDTO> pageDTO = pageAccounts.map( account -> new AccountDTO(account));
+        return pageDTO;
     }
 
     @Override
@@ -64,6 +96,9 @@ public class AccountServiceImpl implements IAccountService {
         Account account = new Account();
         // validation email, username, .....
         account.setEmail(form.getEmail());
+        if (accountRepository.existsByUsernameAndIdNot(form.getUsername(), null)) {
+            throw new RuntimeException("Username đã tồn tại");
+        }
         account.setUsername(form.getUsername());
         account.setFullName(form.getFullName());
         account.setPassword(form.getPassword());
@@ -86,14 +121,15 @@ public class AccountServiceImpl implements IAccountService {
 
     @Override
     public void update(Integer id, AccountCreateForm form) {
+        // tim account theo id
         Account account = accountRepository.findById(id).orElse(null);
         if (Objects.isNull(account)) {
             throw new RuntimeException("ID not found");
         }
-        if (accountRepository.existByEmailAndIdNot(form.getEmail(), id)) {
+        if (accountRepository.existsByEmailAndIdNot(form.getEmail(), id)) {
             throw new RuntimeException("Email exist!");
         }
-        if (accountRepository.existByUsernameAndIdNot(form.getUsername(), id)) {
+        if (accountRepository.existsByUsernameAndIdNot(form.getUsername(), id)) {
             throw new RuntimeException("Username exist!");
         }
 
