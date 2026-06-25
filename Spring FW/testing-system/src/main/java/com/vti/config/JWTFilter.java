@@ -22,7 +22,7 @@ public class JWTFilter extends OncePerRequestFilter {
     private JWTUtils jwtUtils;
 
     @Autowired
-    private IAccountService accountService;
+    private UserDetailService userDetailService;
 
 
     @Override// lấy ra dữ liệu từ token
@@ -34,7 +34,7 @@ public class JWTFilter extends OncePerRequestFilter {
             String username = jwtUtils.getUsernameFromToken(token);
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 // lấy ra UserDeail
-                UserDetails userDetails = accountService.loadUserByUsername(username);
+                UserDetails userDetails = userDetailService.loadUserByUsername(username);//CustomeUserDetail
                 if (!jwtUtils.checkExpired(token)) {
                     UsernamePasswordAuthenticationToken authenticationToken =
                             new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

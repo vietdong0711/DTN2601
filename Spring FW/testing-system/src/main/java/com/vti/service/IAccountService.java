@@ -13,7 +13,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import java.security.Principal;
 import java.util.List;
 
-public interface IAccountService extends UserDetailsService {
+public interface IAccountService {
     Page<AccountDTO> findAll(Pageable pageable, AccountSearchForm form);
 
     AccountDTO findById(Integer id);
@@ -23,4 +23,6 @@ public interface IAccountService extends UserDetailsService {
     void update(Integer id, @Valid AccountCreateForm form);
 
     LoginDTO login(LoginForm form);
+
+    String getProfile();
 }

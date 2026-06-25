@@ -1,21 +1,21 @@
 package com.vti.exception;
 
 import com.vti.dto.ErrorResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.lang.reflect.InvocationTargetException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(BusinessException.class)
     public ResponseEntity<ErrorResponse> handleBusinessException(BusinessException e) {
-//        ErrorResponse response = new ErrorResponse();
-//        response.setCode(e.getCode());
-//        response.setMessage(e.getMessage());
-//        response.setStatus(e.getStatus());
 
         ErrorResponse response = ErrorResponse.builder()
                 .message(e.getMessage())
@@ -24,6 +24,17 @@ public class GlobalExceptionHandler {
                 .build();
         return new ResponseEntity<>(response
                 , HttpStatusCode.valueOf(e.getStatus()));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleException(AccessDeniedException e) {
+        ErrorResponse response = ErrorResponse.builder()
+                .message("Access Denied")
+                .code("Access Denied")
+                .status(HttpServletResponse.SC_FORBIDDEN)
+                .build();
+        return new ResponseEntity<>(response
+                , HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(Exception.class)

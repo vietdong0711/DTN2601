@@ -1,5 +1,6 @@
 package com.vti.service.impl;
 
+import com.vti.config.CustomUserDetail;
 import com.vti.config.JWTUtils;
 import com.vti.dto.AccountDTO;
 import com.vti.dto.LoginDTO;
@@ -29,6 +30,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -174,19 +176,19 @@ public class AccountServiceImpl implements IAccountService {
     @Override
     public LoginDTO login(LoginForm form) {
         // check username + password
-        Authentication authen = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(form.getUsername(), form.getPassword()));
+        Authentication authen = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(form.getUsername(), form.getPassword()));
 
         // generate token
         String token = jwtUtils.generateToken(form.getUsername());
         return new LoginDTO(token);
     }
 
-    @Override// lấy ra UserDetails để spring security quản lý
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        Account account = accountRepository.findByUsername(username);
-        if (Objects.isNull(account)) {
-            throw new UsernameNotFoundException("Username not found!");
-        }
-        return new User(username, account.getPassword(), AuthorityUtils.createAuthorityList(account.getRole().name()));
+    @Override
+    public String getProfile() {
+        String username =  ((CustomUserDetail) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getEmail();
+        return username;
     }
+
+
 }
