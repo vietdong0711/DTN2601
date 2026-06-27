@@ -48,4 +48,12 @@ public class Account {
     @Column(columnDefinition = "datetime default CURRENT_TIMESTAMP")
     @Temporal(TemporalType.TIMESTAMP)
     private Date createDate;
+
+    public Account(Department department, String email, String fullName, Position position, String username) {
+        this.department = department;
+        this.email = email;
+        this.fullName = fullName;
+        this.position = position;
+        this.username = username;
+    }
 }

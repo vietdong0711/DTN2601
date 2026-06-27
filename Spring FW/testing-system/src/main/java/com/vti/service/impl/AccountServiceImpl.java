@@ -1,12 +1,17 @@
 package com.vti.service.impl;
 
+import com.vti.common.StringCommon;
 import com.vti.config.CustomUserDetail;
 import com.vti.config.JWTUtils;
 import com.vti.dto.AccountDTO;
+import com.vti.dto.ImportError;
 import com.vti.dto.LoginDTO;
+import com.vti.dto.context.AccountContext;
+import com.vti.dto.csv.AccountCsv;
 import com.vti.entity.Account;
 import com.vti.entity.Department;
 import com.vti.entity.Position;
+import com.vti.enums.Role;
 import com.vti.exception.BusinessException;
 import com.vti.form.AccountCreateForm;
 import com.vti.form.AccountSearchForm;
@@ -15,7 +20,9 @@ import com.vti.repository.IAccountRepository;
 import com.vti.repository.IDepartmentRepository;
 import com.vti.repository.IPositionRepository;
 import com.vti.service.IAccountService;
+import com.vti.service.ImportFile;
 import com.vti.specification.AccountCustomSpecification;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.StringUtils;
 import org.modelmapper.Converter;
@@ -25,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,12 +42,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class AccountServiceImpl implements IAccountService {
@@ -56,6 +70,10 @@ public class AccountServiceImpl implements IAccountService {
     private AuthenticationManager authenticationManager;// check user+ pass
     @Autowired
     private JWTUtils jwtUtils;// generate token
+    @Autowired
+    private BCryptPasswordEncoder bCryptPasswordEncoder;
+    @Autowired
+    private HttpServletResponse response;
 
     @Override
     public Page<AccountDTO> findAll(Pageable pageable, AccountSearchForm form) {
@@ -190,5 +208,158 @@ public class AccountServiceImpl implements IAccountService {
         return username;
     }
 
+    @Override
+    public String importCSV(MultipartFile file) {
+        Map<String, Account> mapAccountByUsername = accountRepository.findAll()
+                .stream().collect(Collectors.toMap(Account::getUsername, acc -> acc));
+        Map<String, Account> mapAccountByEmail = accountRepository.findAll()
+                .stream().collect(Collectors.toMap(Account::getEmail, acc -> acc));;
+        List<Department> departments = departmentRepository.findAll();
+        List<Position> positions = positionRepository.findAll();
+        AccountContext context = new AccountContext(mapAccountByEmail, mapAccountByEmail, departments, positions);
+        return this.importFile(file, context, response);
+    }
 
+
+    @Override
+    public List<AccountCsv> readFile(MultipartFile file) {
+        List<AccountCsv> csvs = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(file.getInputStream(), StandardCharsets.ISO_8859_1))) {
+            String line = br.readLine();// bo di hang header
+            while ((line = br.readLine()) != null) {
+                // logic doc file
+                String[] fileds = line.split(",", -1);
+                String username = fileds[0];
+                String email = fileds[1];
+                String fullName = fileds[2];
+                String departmentId = fileds[3];
+                String positionId = fileds[4];
+                AccountCsv accountCsv = new AccountCsv(username, fullName, email, departmentId, positionId);
+                csvs.add(accountCsv);
+            }
+
+        } catch (Exception e) {
+        }
+        return csvs;
+    }
+
+    @Override
+    public void validation(AccountCsv accountCsv, AccountContext context, List<ImportError> importErrors, List<Account> entities) {
+        List<String> errors = new ArrayList<>();
+        // validate username
+        String username = accountCsv.getUsername();
+        if (Objects.isNull(username) || username.trim().isEmpty()) {
+            errors.add("Username không được để trống");
+        } else if (context.getMapAccountByUsername().containsKey(username)) {
+            errors.add("Username đã tồn tại");
+        }
+
+        // validation fullname
+        String fullName = accountCsv.getFullName();
+        if (Objects.isNull(fullName) || fullName.trim().isEmpty()) {
+            errors.add("FullName không được để trống");
+        }
+
+        //validation email
+        String email = accountCsv.getEmail();
+        if (Objects.isNull(email) || email.trim().isEmpty()) {
+            errors.add("Email không được để trống");
+        } else if (!email.matches(StringCommon.EMAIL_REGEX)) {
+            errors.add("Email ko đúng định dạng");
+        } else if (context.getMapAccountByEmail().containsKey(email)) {
+            errors.add("Email đã tồn tại");
+        }
+
+        //validation departmentID
+        String departmentId = accountCsv.getDepartmentID();
+        if (Objects.isNull(departmentId) || departmentId.trim().isEmpty()) {
+            errors.add("DepartmentId không được để trống");
+        } else if (!departmentId.matches(StringCommon.NUMBER_REGEX) || Integer.parseInt(departmentId) <= 0) {
+            errors.add("DepartmentId phải nhập số và phải lớn hơn 0");
+        }
+        boolean checkExistDepartment = false;
+        Department department = null;// cho vao contructor account
+        if (departmentId.matches(StringCommon.NUMBER_REGEX)) {
+            for (Department de : context.getDepartments()) {
+                if (de.getId() == Integer.parseInt(departmentId)) {
+                    checkExistDepartment = true;
+                    department = de;
+                    break;
+                }
+            }
+            if (!checkExistDepartment) {
+                errors.add("DepartmentId không tồn tại");
+            }
+        }
+
+        //validation positionID
+        String positionId = accountCsv.getPositionID();
+        if (Objects.isNull(positionId) || positionId.trim().isEmpty()) {
+            errors.add("PositionID không được để trống ");
+        } else if (!positionId.matches(StringCommon.NUMBER_REGEX) || Integer.parseInt(positionId) <= 0) {
+            errors.add("PositionID phải nhập số và phải lớn hơn 0");
+        }
+        boolean checkExistPosition = false;
+        Position position = null;
+        if (positionId.matches(StringCommon.NUMBER_REGEX)) {
+            for (Position po : context.getPositions()) {
+                if (po.getId() == Integer.parseInt(positionId)) {
+                    checkExistPosition = true;
+                    position = po;
+                    break;
+                }
+            }
+            if (!checkExistPosition) {
+                errors.add("PositionID không tồn tại");
+            }
+        }
+
+        if (errors.isEmpty()) {
+            Account acc = new Account(department, email, fullName, position, username);
+            acc.setRole(Role.EMPLOYEE);
+            acc.setPassword(bCryptPasswordEncoder.encode("123456"));
+            entities.add(acc);
+            context.getMapAccountByUsername().put(username, acc);
+            context.getMapAccountByEmail().put(email, acc);
+        } else {
+            importErrors.add(new ImportError(accountCsv.toString(), String.join(" | ", errors)));
+        }
+    }
+
+    @Override
+    public void saveAll(List<Account> entities) {
+        accountRepository.saveAll(entities);
+    }
+
+    @Override
+    public void exportFileError(List<ImportError> importErrors, HttpServletResponse response) {
+        // 1. Cấu hình HTTP Header để trình duyệt hiểu đây là file download
+        String fileName = "import_errors.csv";
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+        try (BufferedWriter bw = new BufferedWriter(
+                new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8))) {
+            // 2. Thêm Byte Order Mark (BOM) cho UTF-8 để Excel hiển thị đúng tiếng Việt
+            bw.write('\ufeff');
+            // 3. Ghi header của file CSV
+            bw.write("username,full_name,email,departmentId,positionId,message_error");
+            bw.newLine();
+            // 4. Duyệt danh sách và ghi từng dòng dữ liệu
+            if (importErrors != null) {
+                for (ImportError error : importErrors) {
+                    // Bạn nên lưu ý: Nếu dữ liệu chứa dấu phẩy (,), hãy escape nó hoặc xử lý nối chuỗi hợp lý.
+                    // Giả định error.getLine() trả về chuỗi các field cách nhau bằng dấu phẩy
+                    bw.write(error.getLine() + "," + error.getMessage());
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+        } catch (Exception e) {
+            // Log lỗi cụ thể ra thay vì để trống catch block
+            System.err.println("Lỗi xuất file CSV: " + e.getMessage());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
+    }
 }
