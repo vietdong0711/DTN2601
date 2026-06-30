@@ -4,6 +4,7 @@ import com.vti.common.StringCommon;
 import com.vti.config.CustomUserDetail;
 import com.vti.config.JWTUtils;
 import com.vti.dto.AccountDTO;
+import com.vti.dto.AccountImportResponse;
 import com.vti.dto.ImportError;
 import com.vti.dto.LoginDTO;
 import com.vti.dto.context.AccountContext;
@@ -14,6 +15,7 @@ import com.vti.entity.Position;
 import com.vti.enums.Role;
 import com.vti.exception.BusinessException;
 import com.vti.form.AccountCreateForm;
+import com.vti.form.AccountExportErros;
 import com.vti.form.AccountSearchForm;
 import com.vti.form.LoginForm;
 import com.vti.repository.IAccountRepository;
@@ -72,8 +74,6 @@ public class AccountServiceImpl implements IAccountService {
     private JWTUtils jwtUtils;// generate token
     @Autowired
     private BCryptPasswordEncoder bCryptPasswordEncoder;
-    @Autowired
-    private HttpServletResponse response;
 
     @Override
     public Page<AccountDTO> findAll(Pageable pageable, AccountSearchForm form) {
@@ -209,15 +209,47 @@ public class AccountServiceImpl implements IAccountService {
     }
 
     @Override
-    public String importCSV(MultipartFile file) {
+    public AccountImportResponse importCSV(MultipartFile file) {
         Map<String, Account> mapAccountByUsername = accountRepository.findAll()
                 .stream().collect(Collectors.toMap(Account::getUsername, acc -> acc));
         Map<String, Account> mapAccountByEmail = accountRepository.findAll()
                 .stream().collect(Collectors.toMap(Account::getEmail, acc -> acc));;
         List<Department> departments = departmentRepository.findAll();
         List<Position> positions = positionRepository.findAll();
-        AccountContext context = new AccountContext(mapAccountByEmail, mapAccountByEmail, departments, positions);
-        return this.importFile(file, context, response);
+        AccountContext context = new AccountContext(mapAccountByEmail, mapAccountByUsername, departments, positions);
+        List<AccountCsv> errorImports = new ArrayList<>();
+        String message = this.importFile(file, context, errorImports);
+        return new AccountImportResponse(message, errorImports);
+    }
+
+    @Override
+    public void exportError(AccountExportErros errors, HttpServletResponse response) {
+        // 1. Cấu hình HTTP Header để trình duyệt hiểu đây là file download
+        String fileName = "import_errors.csv";
+        response.setContentType("text/csv; charset=UTF-8");
+        response.setCharacterEncoding("UTF-8");
+        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+
+        try (BufferedWriter bw = new BufferedWriter(
+                new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8))) {
+            // 2. Thêm Byte Order Mark (BOM) cho UTF-8 để Excel hiển thị đúng tiếng Việt
+            bw.write('\ufeff');
+            // 3. Ghi header của file CSV
+            bw.write("username,full_name,email,departmentId,positionId,message_error");
+            bw.newLine();
+            // 4. Duyệt danh sách và ghi từng dòng dữ liệu
+            if (Objects.nonNull(errors) && !errors.getErrors().isEmpty()) {
+                for (AccountCsv error : errors.getErrors()) {
+                    bw.write(error.toString());
+                    bw.newLine();
+                }
+            }
+            bw.flush();
+        } catch (Exception e) {
+            // Log lỗi cụ thể ra thay vì để trống catch block
+            System.err.println("Lỗi xuất file CSV: " + e.getMessage());
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+        }
     }
 
 
@@ -244,7 +276,7 @@ public class AccountServiceImpl implements IAccountService {
     }
 
     @Override
-    public void validation(AccountCsv accountCsv, AccountContext context, List<ImportError> importErrors, List<Account> entities) {
+    public void validation(AccountCsv accountCsv, AccountContext context, List<AccountCsv> errorImports, List<Account> entities) {
         List<String> errors = new ArrayList<>();
         // validate username
         String username = accountCsv.getUsername();
@@ -322,7 +354,8 @@ public class AccountServiceImpl implements IAccountService {
             context.getMapAccountByUsername().put(username, acc);
             context.getMapAccountByEmail().put(email, acc);
         } else {
-            importErrors.add(new ImportError(accountCsv.toString(), String.join(" | ", errors)));
+            accountCsv.setErrorMessage(String.join(" | ", errors));
+            errorImports.add(accountCsv);
         }
     }
 
@@ -331,35 +364,35 @@ public class AccountServiceImpl implements IAccountService {
         accountRepository.saveAll(entities);
     }
 
-    @Override
-    public void exportFileError(List<ImportError> importErrors, HttpServletResponse response) {
-        // 1. Cấu hình HTTP Header để trình duyệt hiểu đây là file download
-        String fileName = "import_errors.csv";
-        response.setContentType("text/csv; charset=UTF-8");
-        response.setCharacterEncoding("UTF-8");
-        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
-
-        try (BufferedWriter bw = new BufferedWriter(
-                new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8))) {
-            // 2. Thêm Byte Order Mark (BOM) cho UTF-8 để Excel hiển thị đúng tiếng Việt
-            bw.write('\ufeff');
-            // 3. Ghi header của file CSV
-            bw.write("username,full_name,email,departmentId,positionId,message_error");
-            bw.newLine();
-            // 4. Duyệt danh sách và ghi từng dòng dữ liệu
-            if (importErrors != null) {
-                for (ImportError error : importErrors) {
-                    // Bạn nên lưu ý: Nếu dữ liệu chứa dấu phẩy (,), hãy escape nó hoặc xử lý nối chuỗi hợp lý.
-                    // Giả định error.getLine() trả về chuỗi các field cách nhau bằng dấu phẩy
-                    bw.write(error.getLine() + "," + error.getMessage());
-                    bw.newLine();
-                }
-            }
-            bw.flush();
-        } catch (Exception e) {
-            // Log lỗi cụ thể ra thay vì để trống catch block
-            System.err.println("Lỗi xuất file CSV: " + e.getMessage());
-            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-        }
-    }
+//    @Override
+//    public void exportFileError(List<ImportError> importErrors, HttpServletResponse response) {
+//        // 1. Cấu hình HTTP Header để trình duyệt hiểu đây là file download
+//        String fileName = "import_errors.csv";
+//        response.setContentType("text/csv; charset=UTF-8");
+//        response.setCharacterEncoding("UTF-8");
+//        response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"");
+//
+//        try (BufferedWriter bw = new BufferedWriter(
+//                new OutputStreamWriter(response.getOutputStream(), StandardCharsets.UTF_8))) {
+//            // 2. Thêm Byte Order Mark (BOM) cho UTF-8 để Excel hiển thị đúng tiếng Việt
+//            bw.write('\ufeff');
+//            // 3. Ghi header của file CSV
+//            bw.write("username,full_name,email,departmentId,positionId,message_error");
+//            bw.newLine();
+//            // 4. Duyệt danh sách và ghi từng dòng dữ liệu
+//            if (importErrors != null) {
+//                for (ImportError error : importErrors) {
+//                    // Bạn nên lưu ý: Nếu dữ liệu chứa dấu phẩy (,), hãy escape nó hoặc xử lý nối chuỗi hợp lý.
+//                    // Giả định error.getLine() trả về chuỗi các field cách nhau bằng dấu phẩy
+//                    bw.write(error.getLine() + "," + error.getMessage());
+//                    bw.newLine();
+//                }
+//            }
+//            bw.flush();
+//        } catch (Exception e) {
+//            // Log lỗi cụ thể ra thay vì để trống catch block
+//            System.err.println("Lỗi xuất file CSV: " + e.getMessage());
+//            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+//        }
+//    }
 }

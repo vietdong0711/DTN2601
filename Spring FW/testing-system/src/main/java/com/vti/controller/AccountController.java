@@ -3,9 +3,11 @@ package com.vti.controller;
 import com.vti.dto.AccountDTO;
 import com.vti.entity.Account;
 import com.vti.form.AccountCreateForm;
+import com.vti.form.AccountExportErros;
 import com.vti.form.AccountSearchForm;
 import com.vti.service.IAccountService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import org.hibernate.validator.constraints.Length;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -69,6 +71,13 @@ public class AccountController {
     @PostMapping("/importCSV")
     public ResponseEntity<?> importCSV(@RequestParam(name = "file") MultipartFile file) {
         return new ResponseEntity<>(accountService.importCSV(file), HttpStatus.CREATED);
+    }
+
+    // xuất ra file lỗi khi call api này   file csv lỗi(bắt buộc)  + kèm ojb cx ko dc
+    @PostMapping("/export-error")
+    public ResponseEntity<?> exportError(@RequestBody AccountExportErros erros, HttpServletResponse response) {
+        accountService.exportError(erros, response);
+        return new ResponseEntity<>( HttpStatus.CREATED);
     }
 
 }
